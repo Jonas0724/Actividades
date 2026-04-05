@@ -187,36 +187,142 @@ class Gerente:
         print("Queja recibida por el gerente")
 
 
-def main():
+def menu():
+    print("\n=== MENÚ DEL SISTEMA ===")
+    print("1. Ver catálogo")
+    print("2. Crear orden")
+    print("3. Agregar producto a orden")
+    print("4. Calcular total de la orden")
+    print("5. Procesar pago")
+    print("6. Generar envío")
+    print("0. Salir")
 
-    producto = Producto(1, "Laptop", 2000, 10)
+
+def prueba_sistema():
 
     catalogo = Catalogo(1)
-    catalogo.productos.append(producto)
+
+    # Productos creados
+    producto1 = Producto(1, "Laptop", 3500, 5)
+    producto2 = Producto(2, "Mouse", 50, 20)
+    producto3 = Producto(3, "Teclado", 120, 10)
+
+    catalogo.productos.append(producto1)
+    catalogo.productos.append(producto2)
+    catalogo.productos.append(producto3)
 
     cliente = Cliente(1, "Juan", "juan@email.com", "Bogotá")
 
-    orden = cliente.generar_orden(1)
+    orden = None
 
-    orden.agregar_producto(producto, 2)
+    while True:
 
-    total = orden.calcular_total()
+        menu()
+        opcion = input("Seleccione una opción: ")
 
-    tarjeta = TarjetaCredito(
-        "12345678",
-        "Juan",
-        date(2028, 5, 1),
-        123
-    )
+        if opcion == "1":
 
-    tarjeta.procesar_pago(total)
+            print("\n=== CATÁLOGO DE PRODUCTOS ===")
 
-    envio = Envio(1, date.today(), "Bogotá")
+            for p in catalogo.productos:
+                print(
+                    f"Código: {p.codigo} | "
+                    f"Producto: {p.descripcion} | "
+                    f"Precio: {p.precio} | "
+                    f"Stock: {p.cantidad_disponible}"
+                )
 
-    transporte = EmpresaTransporte("123", "Servientrega")
+        elif opcion == "2":
 
-    transporte.entregar_orden(envio)
+            print("\n=== CREAR ORDEN ===")
+
+            id_orden = int(input("ID de la orden: "))
+
+            orden = cliente.generar_orden(id_orden)
+
+            print("Orden creada correctamente")
+
+        elif opcion == "3":
+
+            if orden is None:
+                print("Primero debe crear una orden")
+                continue
+
+            codigo = int(input("Código del producto: "))
+            cantidad = int(input("Cantidad: "))
+
+            producto = catalogo.buscar_producto(codigo)
+
+            if producto and producto.es_disponible(cantidad):
+
+                orden.agregar_producto(producto, cantidad)
+
+                print("Producto agregado a la orden")
+
+            else:
+                print("Producto no disponible")
+
+        elif opcion == "4":
+
+            if orden is None:
+                print("No hay orden creada")
+                continue
+
+            total = orden.calcular_total()
+
+            print(f"Total de la orden: {total}")
+
+        elif opcion == "5":
+
+            if orden is None:
+                print("No hay orden creada")
+                continue
+
+            monto = orden.calcular_total()
+
+            numero = input("Número de tarjeta: ")
+            titular = input("Titular: ")
+            cvv = int(input("CVV: "))
+
+            tarjeta = TarjetaCredito(
+                numero,
+                titular,
+                date(2030, 1, 1),
+                cvv
+            )
+
+            tarjeta.procesar_pago(monto)
+
+            cliente.confirmar_orden(orden)
+
+            print("Orden confirmada")
+
+        elif opcion == "6":
+
+            if orden is None:
+                print("No hay orden creada")
+                continue
+
+            direccion = input("Dirección de entrega: ")
+
+            envio = Envio(1, date.today(), direccion)
+
+            empresa = EmpresaTransporte(
+                "900123",
+                "Transporte Seguro"
+            )
+
+            empresa.entregar_orden(envio)
+
+        elif opcion == "0":
+
+            print("Saliendo del sistema")
+            break
+
+        else:
+
+            print("Opción inválida")
 
 
-if __name__ == "__main__":
-    main()
+# Ejecutar el sistema
+prueba_sistema()
