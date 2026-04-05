@@ -258,152 +258,132 @@ class Visitante:
         return sala.listar_obras()
     
 
+# ================================
+# PRUEBA DE CONSOLA
+# ================================
+
+def menu():
+    print("\n--- SISTEMA DEL MUSEO ---")
+    print("1. Agregar escultura")
+    print("2. Listar obras del catálogo")
+    print("3. Consultar valor total de obras")
+    print("4. Enviar obra a restauración")
+    print("5. Salir")
+
+
 def main():
 
-    # =========================
     # Crear catálogo
-    # =========================
     catalogo = Catalogo()
 
-    # =========================
-    # Crear autor y periodo
-    # =========================
-    autor1 = Autor(
-        1,
-        "Leonardo da Vinci",
-        "Italiano",
-        date(1452, 4, 15)
-    )
-
-    autor2 = Autor(
-        2,
-        "Miguel Angel",
-        "Italiano",
-        date(1455, 4, 15)
-    )
-
-    periodo1 = Periodo(
-        "Renacimiento",
-        date(1400, 1, 1),
-        date(1600, 1, 1)
-    )
-
-    # =========================
     # Crear sala
-    # =========================
-    sala1 = Sala(1, "Sala Renacimiento", 1)
+    sala1 = Sala(1, "Sala principal", 1)
 
-    # =========================
-    # Crear obras
-    # =========================
-    obra1 = Cuadro(
-        "Óleo",
-        "Renacentista",
-        1,
-        "La Gioconda",
-        1000000,
-        date(1503, 1, 1),
-        date(2000, 1, 1),
-        autor1,
-        periodo1,
-        sala1
-    )
+    # Crear autor y periodo de prueba
+    autor1 = Autor(1, "Autor desconocido", "Italia", "1500")
+    periodo1 = Periodo("Renacimiento", "1400", "1600")
 
-    obra2 = Escultura(
-        "Mármol",
-        "Renacentista",
-        1,
-        "La piedad",
-        2000000,
-        date(1503, 1, 1),
-        date(2000, 1, 1),
-        autor2,
-        periodo1,
-        sala1
-    )
-    # Agregar obra a la sala
-    sala1.agregar_obra(obra1)
+    # Crear usuarios del sistema
+    director = DirectorMuseo(1, "director", "123", "Carlos", "EMP01")
+    restaurador = RestauradorJefe(2, "restaurador", "123", "Ana", "EMP02")
+    catalogador = EncargadoCatalogo(3, "catalogo", "123", "Luis", "EMP03")
 
-    # =========================
-    # Encargado del catálogo
-    # =========================
-    encargado = EncargadoCatalogo(
-        1,
-        "encargado1",
-        "1234",
-        "Carlos",
-        100
-    )
+    lista_usuarios = [director, restaurador, catalogador]
 
-    encargado.agregar_obra(catalogo, obra1)
-    encargado.agregar_obra(catalogo, obra2)
+    # LOGIN
+    usuario_actual = None
 
-    print("Obras en catálogo:")
-    for obra in catalogo.listar_obras():
-        print(obra.titulo)
+    while usuario_actual is None:
+        usuario_actual = login(lista_usuarios)
 
-    # =========================
-    # Restaurador jefe
-    # =========================
-    restaurador = RestauradorJefe(
-        2,
-        "restaurador1",
-        "1234",
-        "Ana",
-        101
-    )
+    # MENÚ PRINCIPAL
+    while True:
 
-    restaurador.enviar_restauracion(obra1, "Limpieza")
+        menu()
+        opcion = input("Seleccione una opción: ")
 
-    print("Estado de la obra", obra1.titulo, "es:", obra1.estado)
+        # AGREGAR ESCULTURA
+        if opcion == "1":
 
-    restauracion = obra1.restauraciones[0]
+            if isinstance(usuario_actual, EncargadoCatalogo):
 
-    restaurador.finalizar_restauracion(
-        restauracion,
-        date.today()
-    )
+                id_obra = int(input("ID obra: "))
+                titulo = input("Título: ")
+                valor = float(input("Valor económico: "))
+                material = input("Material: ")
+                estilo = input("Estilo: ")
 
-    print("Estado de la obra", obra1.titulo, "es:", obra1.estado)
+                escultura = Escultura(
+                    material,
+                    estilo,
+                    id_obra,
+                    titulo,
+                    valor,
+                    "1500",
+                    "2024",
+                    autor1,
+                    periodo1,
+                    sala1
+                )
 
-    # =========================
-    # Director del museo
-    # =========================
-    director = DirectorMuseo(
-        3,
-        "director1",
-        "1234",
-        "Luis",
-        102
-    )
+                usuario_actual.agregar_obra(catalogo, escultura)
+                sala1.agregar_obra(escultura)
 
-    museo_destino = Museo(
-        1,
-        "Museo de Arte Moderno",
-        "Madrid",
-        "España"
-    )
+                print("Escultura agregada al catálogo")
 
-    director.registrar_cesion(
-        obra1,
-        museo_destino,
-        date.today(),
-        date(2026, 12, 31),
-        50000
-    )
+            else:
+                print("No tienes permiso para agregar obras")
 
-    print("Número de cesiones de", obra1.titulo, ":", len(obra1.cesiones))
+        # LISTAR OBRAS
+        elif opcion == "2":
 
-    # =========================
-    # Visitante consultando catálogo
-    # =========================
-    visitante = Visitante("Juan", "Pérez")
+            obras = catalogo.listar_obras()
 
-    obras_catalogo = visitante.consultar_catalogo(catalogo)
+            if not obras:
+                print("No hay obras en el catálogo")
 
-    print("Catálogo consultado por visitante:")
-    for obra in obras_catalogo:
-        print(obra.titulo)
+            for obra in obras:
+                print(f"ID: {obra.id_obra} - {obra.titulo} - ${obra.valor_economico}")
+
+        # VALOR TOTAL
+        elif opcion == "3":
+
+            if isinstance(usuario_actual, DirectorMuseo):
+
+                total = usuario_actual.consultar_valor_total_obras(catalogo)
+                print(f"Valor total del museo: ${total}")
+
+            else:
+                print("Solo el director puede consultar esto")
+
+        # RESTAURACIÓN
+        elif opcion == "4":
+
+            if isinstance(usuario_actual, RestauradorJefe):
+
+                id_obra = int(input("Ingrese ID de obra: "))
+                obra = catalogo.buscar_obra(id_obra)
+
+                if obra:
+
+                    tipo = input("Tipo de restauración: ")
+                    usuario_actual.enviar_restauracion(obra, tipo)
+
+                else:
+                    print("Obra no encontrada")
+
+            else:
+                print("No tienes permiso")
+
+        # SALIR
+        elif opcion == "5":
+
+            usuario_actual.cerrar_sesion()
+            print("Fin del programa")
+            break
+
+        else:
+            print("Opción inválida")
 
 
 # Ejecutar programa
